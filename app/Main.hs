@@ -26,7 +26,7 @@ data Flag
     deriving Show
 
 defaultPort :: Flag
-defaultPort = Port 3000
+defaultPort = Port 1178
 
 options :: [OptDescr Flag]
 options =
