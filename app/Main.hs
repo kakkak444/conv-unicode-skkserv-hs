@@ -1,3 +1,4 @@
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main ( main ) where
@@ -9,14 +10,20 @@ import Control.Monad              (forever, void)
 import Data.ByteString.Char8                      qualified as BS8
 import Data.ByteString.Conversion                 qualified as BS8
 import Data.ByteString.UTF8       (fromChar)
-import Data.Char                  (chr)
+import Data.Char                  (chr, ord)
 import Data.Coerce
+import Data.Function              ((&), fix)
 import Data.List                  (find)
 import Data.List.NonEmpty                         qualified as NE
 import Data.Maybe                 (fromMaybe)
 import Data.Monoid
 import Network.Socket                                              hiding (defaultPort)
 import Network.Socket.ByteString
+import Streaming.ByteString                       qualified as SB
+import Streaming.ByteString.Char8                 qualified as SB8
+import Streaming.Network.TCP      (fromSocket, toSocket)
+import Streaming                                  qualified as S
+import Streaming.Prelude                          qualified as SP
 import System.Console.GetOpt
 import System.Environment         (getArgs)
 
@@ -102,6 +109,33 @@ skkserver sock = do
     versionInfo = "conv-unicode-skkserv-0.1.0.0"
     isValidUnicodeCodepoint i = 0x0000 <= i && i <= 0x10FFFF
     continue = skkserver sock
+
+skkserver' :: Socket -> IO ()
+skkserver' sock
+    = fromSocket sock 1024
+    & SB8.lines
+    & S.maps SB8.skipSomeWS
+    & S.mapped (\stream -> do
+        uncons' <- SB.uncons stream
+        case uncons' of
+            Left rest -> return $ (Right ()) S.:> rest
+            Right (op, operand) ->
+                let op' = fromIntegral op
+                in
+                    if
+                    | op' == ord '0' -> do
+                        ((Left ()) S.:>) <$> SB.effects operand
+                    | op' == ord '2' -> do
+                        toSocket sock $ SB.fromStrict $ versionInfo <> " \n"
+                        ((Right ()) S.:>) <$> SB.effects operand
+                    | op' == ord '3' -> do
+                        toSocket sock $ SB.fromStrict $ "novalue: \n"
+                        ((Right ()) S.:>) <$> SB.effects operand
+                    | otherwise -> ((Right ()) S.:>) <$> SB.effects operand
+    )
+    & SP.fold_ (>>) (Right ()) (const ())
+  where
+    versionInfo = "conv-unicode-skkserv-0.1.0.0"
 
 main :: IO ()
 main = do

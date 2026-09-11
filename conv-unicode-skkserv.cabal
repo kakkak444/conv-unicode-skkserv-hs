@@ -74,6 +74,9 @@ executable conv-unicode-skkserv
                     , bytestring-conversion ==0.3.*
                     , network ==3.2.*
                     , safe-exceptions ==0.1.*
+                    , streaming ==0.2.*
+                    , streaming-bytestring ==0.3.*
+                    , streaming-utils ==0.2.*
                     , utf8-string ==1.0.*
 
     -- Directories containing source files.
