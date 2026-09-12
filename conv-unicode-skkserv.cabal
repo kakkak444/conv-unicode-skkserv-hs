@@ -63,17 +63,15 @@ executable conv-unicode-skkserv
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    other-modules:    SkkServer
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
 
     -- Other library packages from which modules are imported.
-    build-depends:    base ^>=4.20.2.0
+    build-depends:    attoparsec ==0.14.*
+                    , base ^>=4.20.2.0
                     , bytestring ==0.12.*
-                    , bytestring-conversion ==0.3.*
-                    , network ==3.2.*
-                    , safe-exceptions ==0.1.*
                     , streaming ==0.2.*
                     , streaming-bytestring ==0.3.*
                     , streaming-utils ==0.2.*
