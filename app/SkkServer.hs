@@ -81,7 +81,6 @@ skkserver :: Socket -> IO ()
 {-# INLINABLE skkserver #-}
 skkserver sock
     = fromSocket sock 4096
-    & S.chunkMapM (\bs -> BS.putStr bs >> return bs)
     & S.parsed parser
     & SP.cycle -- for ignoring failures of parsing
     & SP.foldrM ( \x acc ->
