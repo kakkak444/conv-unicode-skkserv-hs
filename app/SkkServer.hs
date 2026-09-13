@@ -36,10 +36,10 @@ data Vocabulary
     deriving (Show)
 
 parser :: A.Parser Vocabulary
-parser = A.choice [ End     <$  (A.char '0' *>                           A.many1 (A.char ' ') <* optional (A.char '\n'))
-                  , Request <$> (A.char '1' *> A.takeTill (A.isSpace) <* A.many1 (A.char ' ') <* optional (A.char '\n'))
-                  , Version <$  (A.char '2' *>                           A.many1 (A.char ' ') <* optional (A.char '\n'))
-                  , Host    <$  (A.char '3' *>                           A.many1 (A.char ' ') <* optional (A.char '\n'))
+parser = A.choice [ End     <$  (A.char '0')
+                  , Request <$> (A.char '1' *> A.takeTill (A.isSpace))
+                  , Version <$  (A.char '2')
+                  , Host    <$  (A.char '3')
                   ]
 
 versionInfo :: IsString a => a
@@ -70,17 +70,18 @@ codepointToChar bs =
     isValidUnicodeCodepoint i = 0x0000 <= i && i <= 0x10FFFF
 
 interpret :: Vocabulary -> IO r -> (BS.ByteString -> IO r) -> IO r
-interpret End left _ = left
+interpret End left _ = putStrLn "command: End" >> left
 interpret (Request bs) _ right = case codepointToChar bs of
-    Left  invalid -> right $ "4"  <> invalid       <> " \n"
-    Right char    -> right $ "1/" <> fromChar char <> "/\n"
-interpret Version _ right = right $ toRep versionInfo <> " \n"
-interpret Host    _ right = right $ toRep hostName    <> " \n"
+    Left  invalid -> putStrLn "command: Request > Left"  >> (right $ "4"  <> invalid       <> " \n")
+    Right char    -> putStrLn "command: Request > Right" >> (right $ "1/" <> fromChar char <> "/\n")
+interpret Version _ right = putStrLn "command: Version" >> (right $ toRep versionInfo <> " \n")
+interpret Host    _ right = putStrLn "command: Host"    >> (right $ toRep hostName    <> " \n")
 
 skkserver :: Socket -> IO ()
 {-# INLINABLE skkserver #-}
 skkserver sock
     = fromSocket sock 4096
+    & S.chunkMapM (\bs -> BS.putStr bs >> return bs)
     & S.parsed parser
     & SP.cycle -- for ignoring failures of parsing
     & SP.foldrM ( \x acc ->
