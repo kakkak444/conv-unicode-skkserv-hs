@@ -70,12 +70,12 @@ codepointToChar bs =
     isValidUnicodeCodepoint i = 0x0000 <= i && i <= 0x10FFFF
 
 interpret :: Vocabulary -> IO r -> (BS.ByteString -> IO r) -> IO r
-interpret End left _ = putStrLn "command: End" >> left
+interpret End left _ = left
 interpret (Request bs) _ right = case codepointToChar bs of
-    Left  invalid -> putStrLn "command: Request > Left"  >> (right $ "4"  <> invalid       <> " \n")
-    Right char    -> putStrLn "command: Request > Right" >> (right $ "1/" <> fromChar char <> "/\n")
-interpret Version _ right = putStrLn "command: Version" >> (right $ toRep versionInfo <> " \n")
-interpret Host    _ right = putStrLn "command: Host"    >> (right $ toRep hostName    <> " \n")
+    Left  invalid -> right $ "4"  <> invalid       <> " \n"
+    Right char    -> right $ "1/" <> fromChar char <> "/\n"
+interpret Version _ right = right $ toRep versionInfo <> " \n"
+interpret Host    _ right = right $ toRep hostName    <> " \n"
 
 skkserver :: Socket -> IO ()
 {-# INLINABLE skkserver #-}
