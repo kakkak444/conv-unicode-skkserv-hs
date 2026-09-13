@@ -15,7 +15,7 @@ import SkkServer             (skkserver)
 
 data Flag
     = Port !Int
-    | Host String
+    | Host !String
     deriving Show
 
 defaultPort :: Flag
