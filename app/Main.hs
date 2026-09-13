@@ -52,4 +52,6 @@ main = do
     let Port port = fromMaybe defaultPort $ getPort opts
         Host host = fromMaybe defaultHost $ getHost opts
 
+    putStrLn $ "server started on " <> host <> ":" <> show port
+
     NS.serve (NS.Host host) (show port) (skkserver . fst)
